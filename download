@@ -1,0 +1,15 @@
+-- CrawlInsights: KPI Summary
+-- Starting point for any log audit — total hits and error rate
+
+WITH base AS (
+  SELECT
+    COUNT(*) AS total_hits,
+    SUM(CASE WHEN try_cast(status AS integer) >= 400 THEN 1 ELSE 0 END) AS err_hits
+  FROM crawlinsights.logs_raw
+)
+SELECT 'total_hits' AS metric, CAST(total_hits AS varchar) AS value, '' AS notes
+FROM base
+UNION ALL
+SELECT 'err_hits', CAST(err_hits AS varchar), '' FROM base
+UNION ALL
+SELECT 'err_pct', CAST(ROUND(100.0 * err_hits / NULLIF(total_hits, 0), 2) AS varchar), '>=400' FROM base;
